@@ -1,23 +1,44 @@
-import { Component,OnInit } from '@angular/core';
-import { NgForm } from '@angular/forms';
-import { interval,timer } from 'rxjs';
-import { PostsService } from '../posts.service';
+import { Component,OnInit } from "@angular/core";
+import { NgForm } from "@angular/forms";
+import { ActivatedRoute, ParamMap } from "@angular/router";
+import { Post } from '../post.model';
+import { PostsService } from "../posts.service";
 
 @Component({
-  selector: 'app-post-create',
-  templateUrl: './post-create.component.html',
-  styleUrls: ['./post-create.component.scss']
+  selector: "app-post-create",
+  templateUrl: "./post-create.component.html",
+  styleUrls: ["./post-create.component.scss"]
 })
 export class PostCreateComponent implements OnInit{
-  enteredContent: string;
-  enteredTitle: string;
-  enteredTitleTwo: string;
+  enteredContent="";
+  enteredTitle="";
+  private mode = "create";
+  private postId:string;
+  public post:Post;
 
-  constructor(public postsService:PostsService) { }
+
+
+  constructor(public postsService:PostsService,public route:ActivatedRoute) { }
+  
+  
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
+    this.route.paramMap.subscribe((paramMap:ParamMap)=>{
+      // console.log(paramMap);
+      if(paramMap.has("postId")){
+        // console.log('has post ID');
+        this.mode = "edit"
+        this.postId = paramMap.get('postId')
+        this.post = this.postsService.getPost(this.postId)
+        
+        
+      }else{
+        this.mode = "create"
+        this.postId = null
+      }
 
+
+
+    })
   }
 
   onAddPost(form: NgForm) {

@@ -1,9 +1,26 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-
+const mongoose = require('mongoose');
+const Post = require('./models/post');
+require('dotenv').config();
 app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded());
+
+// Connect to mongoDB
+mongoose.connect(process.env.DB_LINK, {
+// mongoose.connect(process.envDB_LINK, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    console.log("connected to DB");
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+
+
 
 app.use((req,res,next)=>{
     // Website you wish to allow to connect
@@ -21,38 +38,51 @@ app.use((req,res,next)=>{
 
 
 
+
 app.post('/api/posts',(req,res,next)=>{
-    const post = req.body;
-    console.log(post);
-    res.status(201).json({
-        message:"Post added successfully!"
+    const post = new Post({
+        title:req.body.title,
+        content:req.body.content
     })
-});
-
-app.get('/api/posts',(req,res,next)=>{
-    const posts = [
-        {
-        id:"fad123123",
-        title:"first ever server side post",
-        content:"this is coming from the server"
-    },
-    {
-        id:"fadasdad",
-        title:"Second ever server side post",
-        content:"This is second post coming from the server"
-    }
-    ];
-
-    res.status(200).json({
-        message:"Posts fetched successfully",
-        posts:posts
+    post
+    .save()
+    .then(response=>{
+        // console.log(response);
+        res.status(201).json({
+            message:"Post added successfully",
+            postId:response._id
+        })
     })
+    .catch((err)=>{console.log(err);})
+    
+
 
 
 });
 
+app.get('/api/posts',(req,res)=>{
+    Post
+    .find()
+    .then((documents)=>{
+        res.status(200).json({
+            message:"Posts fetched successfully",
+            posts:documents
+        })
+    })
+    .catch((err)=>{console.log(err);})
+
+});
 
 
+app.delete('/api/posts/:id',(req,res)=>{
+    // Post.findByIdAndDelete(req.params.id)
+    console.log(req.params.id);
+    
+    Post.findByIdAndDelete(req.params.id)
+        .then(res.status(200).json({message:"Post deleted!"}))
+        .catch((err)=>{console.log(err);})
+
+})
 
 module.exports = app;
 
